@@ -1,6 +1,7 @@
 package com.ra.config;
 
 import com.ra.security.UserDetailService;
+import com.ra.security.jwt.CustomAccessDenied;
 import com.ra.security.jwt.JwtAuthTokenFilter;
 import com.ra.security.jwt.JwtEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,8 @@ public class SecurityConfig {
     private JwtEntryPoint jwtEntryPoint;
     @Autowired
     private JwtAuthTokenFilter jwtAuthTokenFilter;
+    @Autowired
+    private CustomAccessDenied customAccessDenied;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
@@ -35,7 +38,7 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/v1/auth/login").permitAll();
                     auth.requestMatchers("/api/v1/departments").hasAnyAuthority("ADMIN","STAFF");
                 }).sessionManagement(auth->auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exception->exception.authenticationEntryPoint(jwtEntryPoint))
+                .exceptionHandling(exception->exception.authenticationEntryPoint(jwtEntryPoint).accessDeniedHandler(customAccessDenied))
                 .addFilterAfter(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
 
